@@ -1,8 +1,4 @@
-POST http://test-work/backend/web/api/cadastral/views/
+GET http://test-work/backend/web/api/find/69:27:0000022:1306
 Content-Type: application/json
-
-{
-  "cadastralNumber": "69:27:0000022:1306"
-}
 
 ###
