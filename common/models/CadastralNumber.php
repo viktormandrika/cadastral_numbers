@@ -49,4 +49,7 @@ class CadastralNumber extends \yii\db\ActiveRecord
             'area' => 'Area',
         ];
     }
+    public static function findByNumber($number){
+        return self::find()->where(['cadastralNumber' => $number])->one();
+    }
 }

@@ -52,6 +52,7 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET api/find/<number>' => 'api/find'
             ],
         ],
 

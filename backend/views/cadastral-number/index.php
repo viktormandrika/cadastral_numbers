@@ -13,6 +13,11 @@ $this->title = 'Cadastral Numbers';
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>
+<?php if($model->errors ):?>
+<?php foreach ($model->errors as $index => $error) :?>
+    <p><?php echo $error ?></p>
+<?php endforeach; ?>
+<?php endif; ?>
 <div class="cadastral-number-index">
 
     <h1><?= Html::encode( $this->title ) ?></h1>
@@ -28,19 +33,16 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php ActiveForm::end(); ?>
 
      <?php Pjax::begin(); ?>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget(
         [
             'dataProvider' => $dataProvider,
             'columns' => [
-                ['class' => 'yii\grid\SerialColumn'],
-                'id',
                 'cadastralNumber',
                 'address',
                 'price',
                 'area',
-                ['class' => 'yii\grid\ActionColumn'],
+
             ],
         ]
     ); ?>

@@ -4,39 +4,77 @@
 namespace common\components;
 
 
+use phpDocumentor\Reflection\Types\This;
 use yii\httpclient\Client;
 
+/**
+ * Class Parser
+ *
+ * @package   common\components
+ * @property array   $cadastralNumbers
+ * @property array   $requestData
+ * @property  Client $client
+ */
 class Parser
 {
+    /**
+     * @var array $cadastralNumbers
+     */
     protected $cadastralNumbers;
+    /**
+     * @var array $requestData
+     */
+    public $requestData;
+    /**
+     * @var Client $client
+     */
+    protected $client;
+
+    protected $errors = [];
+
     const BASE_URL = 'http://pkk.bigland.ru/api/';
+    const REQUEST_FORMAT = Client::FORMAT_JSON;
+    const RESPONSE_FORMAT = Client::FORMAT_JSON;
 
-
-    public function setCadastralNumbers(array $cadastralNumbers)
+    public function __construct()
     {
-        foreach ($cadastralNumbers as $index => $cadastralNumber) {
-            $this->cadastralNumbers['collection']['plots'] = $cadastralNumber;
-        }
-    }
-
-    public function sendRequest()
-    {
-        $client = new Client(
+        $this->client = new Client(
             [
-                'baseUrl' => 'http://pkk.bigland.ru/api/',
+                'baseUrl' => self::BASE_URL,
                 'requestConfig' => [
-                    'format' => Client::FORMAT_JSON
+                    'format' => self::REQUEST_FORMAT
                 ],
                 'responseConfig' => [
-                    'format' => Client::FORMAT_JSON
+                    'format' => self::RESPONSE_FORMAT
                 ],
             ]
         );
-     return   $response = $client->createRequest()
+    }
+
+    /**
+     * @param array $cadastralNumbers
+     * @return $this
+     */
+    protected function setCadastralNumbers(array $cadastralNumbers): self
+    {
+        foreach ($cadastralNumbers as $index => $cadastralNumber) {
+            $this->cadastralNumbers['collection']['plots'] = trim( $cadastralNumber );
+        }
+        return $this;
+    }
+
+    protected function sendRequest()
+    {
+        $response = $this->client->createRequest()
             ->setMethod( 'POST' )
             ->setFormat( Client::FORMAT_JSON )
             ->setUrl( 'test/plots' )
-            ->setData( $this->cadastralNumbers )
+            ->setData( $this->requestData )
             ->send();
+        if (!$response->statusCode !== 200 && $response->data['message']) {
+            $this->errors[] = $response->data['message'];
+        }
+        return $response;
     }
+
 }

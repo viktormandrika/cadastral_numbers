@@ -13,10 +13,22 @@ use yii\data\ActiveDataProvider;
 
 class CadastralSearchForm extends Model
 {
-
+    /**
+     * @var string $cadastralNumbers
+     */
     public $cadastralNumbers;
-    public $array;
-    public $not_isset_cadastral_numbers;
+    /**
+     * @var array $cadastralNumbersArray
+     */
+    public $cadastralNumbersArray;
+    /**
+     * @var array $not_isset_cadastral_numbers
+     */
+    protected $not_isset_cadastral_numbers;
+    /**
+     * @var array $errors
+     */
+    public $errors = [];
 
     public function rules()
     {
@@ -27,33 +39,65 @@ class CadastralSearchForm extends Model
         ];
     }
 
-    public function setNumbers()
+    public function parse()
     {
-        $explode = explode( ',', $this->cadastralNumbers );
-        foreach ($explode as $index => $ex) {
-            $this->array[$index] = $ex;
-        }
+        $this->setNumbers()->check()->createNewCadastralNumbers();
     }
 
-    public function check()
+    /**
+     * @return array
+     */
+    public function getNotIssetCadastralNumbers(): array
     {
-        foreach ($this->array as $index => $item) {
-            if (!self::isIsset( $item )) {
-                $this->not_isset_cadastral_numbers[] = $item;
+        return $this->not_isset_cadastral_numbers ? $this->not_isset_cadastral_numbers : [];
+    }
+
+    /**
+     * @return $this
+     */
+    protected function setNumbers()
+    {
+        $cadasrtalNumbersArray = explode( ',', $this->cadastralNumbers );
+        foreach ($cadasrtalNumbersArray as $index => $number) {
+            $this->cadastralNumbersArray[$index] = trim( $number );
+        }
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    protected function check()
+    {
+        foreach ($this->cadastralNumbersArray as $index => $number) {
+            if (!self::isIsset( $number )) {
+                $this->not_isset_cadastral_numbers[] = $number;
             }
         }
+        return $this;
     }
 
-    public function createNewCadastralNumbers()
+    protected function createNewCadastralNumbers()
     {
-        ParserNewNumbers::createNewNumbers( $this );
+        $result = ParserNewNumbers::getInformationAboutNumbers( $this )->saveInformationAboutNumbers();
+        if ($errors = $result->getErrors()) {
+            $this->errors = $errors;
+        }
     }
 
+
+    /**
+     * @param string $cadastralNumber
+     * @return bool
+     */
     private function isIsset(string $cadastralNumber): bool
     {
         return CadastralNumber::find()->where( ['cadastralNumber' => $cadastralNumber] )->exists();
     }
 
+    /**
+     * @return ActiveDataProvider
+     */
     public function search()
     {
         $query = CadastralNumber::find();
@@ -63,9 +107,10 @@ class CadastralSearchForm extends Model
                 'query' => $query,
             ]
         );
-
-        foreach ($this->array as $index => $item) {
-            $query->orFilterWhere( ['like', 'cadastralNumber', trim( $item )] );
+        if ($this->cadastralNumbersArray) {
+            foreach ($this->cadastralNumbersArray as $index => $number) {
+                $query->orFilterWhere( ['like', 'cadastralNumber', trim( $number )] );
+            }
         }
         return $dataProvider;
     }

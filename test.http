@@ -1,0 +1,8 @@
+POST http://test-work/backend/web/api/cadastral/views/
+Content-Type: application/json
+
+{
+  "cadastralNumber": "69:27:0000022:1306"
+}
+
+###
